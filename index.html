@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Desejos</title>
+  <meta name="description" content="Lista de desejos com comparação de preços e finanças">
+  <meta name="theme-color" content="#F6F3EC" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#161A18" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Desejos">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <!-- LISTA -->
+    <section id="tela-lista" class="tela">
+      <header class="topo">
+        <p class="saudacao" id="saudacao"></p>
+        <h1>Desejos</h1>
+        <p class="resumo" id="resumo"></p>
+      </header>
+
+      <div class="busca">
+        <input id="busca" type="search" placeholder="Buscar…" aria-label="Buscar" autocomplete="off">
+        <select id="ordem" aria-label="Ordenar">
+          <option value="prioridade">Prioridade</option>
+          <option value="menor">Menor preço</option>
+          <option value="maior">Maior preço</option>
+          <option value="recentes">Mais recentes</option>
+        </select>
+      </div>
+
+      <div class="chips" id="filtro-categorias" role="tablist" aria-label="Categorias"></div>
+      <div class="chips chips-tags" id="filtro-etiquetas" aria-label="Etiquetas"></div>
+
+      <div class="barra-lista">
+        <span id="contagem"></span>
+        <button type="button" class="link" id="btn-reordenar" hidden>Reordenar</button>
+      </div>
+
+      <ul class="lista" id="lista"></ul>
+      <p class="vazio" id="vazio" hidden></p>
+    </section>
+
+    <!-- FINANÇAS -->
+    <section id="tela-financas" class="tela" hidden>
+      <header class="topo">
+        <h1>Finanças</h1>
+        <p class="resumo">Quanto você tem e quando dá pra comprar.</p>
+      </header>
+
+      <div class="cartao saldo">
+        <p class="rotulo">Dinheiro que tenho hoje</p>
+        <button type="button" class="valor-grande" id="saldo" aria-label="Editar saldo"></button>
+        <div class="acoes-saldo">
+          <button type="button" class="botao" id="btn-entrou">+ Entrou</button>
+          <button type="button" class="botao secundario" id="btn-saiu">− Saiu</button>
+        </div>
+      </div>
+
+      <div class="cartao">
+        <label class="campo">
+          <span>Quanto consigo guardar por mês</span>
+          <input id="mensal" inputmode="decimal" placeholder="R$ 0,00">
+        </label>
+      </div>
+
+      <div class="grade-numeros" id="numeros"></div>
+
+      <h2>Metas</h2>
+      <p class="ajuda">Ex.: “Quando eu tiver R$ 2.000, compro o fone e a mochila”.</p>
+      <ul class="lista" id="lista-metas"></ul>
+      <button type="button" class="botao largo" id="btn-nova-meta">+ Nova meta</button>
+
+      <h2>Plano por prioridade</h2>
+      <p class="ajuda">Seguindo a ordem da sua lista, com o melhor preço de cada item.</p>
+      <ol class="plano" id="plano"></ol>
+
+      <details class="historico">
+        <summary>Histórico do dinheiro</summary>
+        <ul id="historico"></ul>
+      </details>
+    </section>
+
+    <!-- AJUSTES -->
+    <section id="tela-ajustes" class="tela" hidden>
+      <header class="topo"><h1>Perfil</h1></header>
+
+      <div class="cartao">
+        <label class="campo">
+          <span>Seu nome</span>
+          <input id="perfil-nome" placeholder="Seu nome ou apelido" maxlength="40">
+        </label>
+      </div>
+
+      <h2>Categorias</h2>
+      <ul class="lista" id="lista-categorias"></ul>
+      <form class="nova" id="form-categoria" autocomplete="off">
+        <input id="nova-categoria" placeholder="Nova categoria…" maxlength="40" aria-label="Nova categoria">
+        <button type="submit" aria-label="Adicionar categoria">+</button>
+      </form>
+
+      <h2>Cópia de segurança</h2>
+      <p class="ajuda">Tudo fica salvo só neste aparelho. Exporte de vez em quando para não perder, ou para passar para outro celular.</p>
+      <div class="acoes-saldo">
+        <button type="button" class="botao secundario" id="btn-exportar">Exportar</button>
+        <label class="botao secundario">Importar<input type="file" id="importar" accept="application/json,.json" hidden></label>
+      </div>
+    </section>
+  </main>
+
+  <button type="button" class="fab" id="btn-novo" aria-label="Adicionar item">+</button>
+
+  <nav class="abas" aria-label="Seções">
+    <button type="button" data-tela="lista" class="ativa"><span class="ico">♡</span>Lista</button>
+    <button type="button" data-tela="financas"><span class="ico">$</span>Finanças</button>
+    <button type="button" data-tela="ajustes"><span class="ico">☺</span>Perfil</button>
+  </nav>
+
+  <!-- Detalhe do item -->
+  <dialog id="dlg-detalhe" class="folha">
+    <div class="folha-corpo" id="detalhe"></div>
+  </dialog>
+
+  <!-- Formulário do item -->
+  <dialog id="dlg-form" class="folha">
+    <form method="dialog" id="form-item" class="folha-corpo" autocomplete="off">
+      <div class="folha-topo">
+        <button type="button" class="link" data-fechar>Cancelar</button>
+        <strong id="form-titulo">Novo item</strong>
+        <button type="submit" class="link forte">Salvar</button>
+      </div>
+
+      <label class="foto-campo" id="foto-campo">
+        <img id="foto-previa" alt="" hidden>
+        <span id="foto-texto">Adicionar foto</span>
+        <input type="file" id="foto" accept="image/*" hidden>
+      </label>
+      <button type="button" class="link perigo" id="foto-remover" hidden>Remover foto</button>
+
+      <label class="campo"><span>Nome</span>
+        <input id="f-nome" required maxlength="120" placeholder="O que você quer comprar?">
+      </label>
+
+      <label class="campo"><span>Categoria</span>
+        <select id="f-categoria"></select>
+      </label>
+
+      <div class="campo"><span>Prioridade</span>
+        <div class="segmentos" id="f-prioridade">
+          <button type="button" data-p="1">Alta</button>
+          <button type="button" data-p="2">Média</button>
+          <button type="button" data-p="3">Baixa</button>
+        </div>
+      </div>
+
+      <div class="campo"><span>Etiquetas</span>
+        <div class="chips" id="f-etiquetas-sugestoes"></div>
+        <input id="f-etiqueta" placeholder="Nova etiqueta e Enter (ex.: presente, urgente)" maxlength="30" enterkeyhint="done">
+      </div>
+
+      <label class="campo"><span>Descrição</span>
+        <textarea id="f-descricao" rows="3" placeholder="Cor, tamanho, modelo, por que quero…"></textarea>
+      </label>
+
+      <div class="campo"><span>Onde comprar e preços</span>
+        <div id="f-lojas"></div>
+        <button type="button" class="link" id="f-add-loja">+ Adicionar loja ou site</button>
+      </div>
+
+      <label class="checar"><input type="checkbox" id="f-comprado"> Já comprei</label>
+    </form>
+  </dialog>
+
+  <!-- Meta -->
+  <dialog id="dlg-meta" class="folha">
+    <form method="dialog" id="form-meta" class="folha-corpo" autocomplete="off">
+      <div class="folha-topo">
+        <button type="button" class="link" data-fechar>Cancelar</button>
+        <strong id="meta-titulo">Nova meta</strong>
+        <button type="submit" class="link forte">Salvar</button>
+      </div>
+      <label class="campo"><span>Nome da meta</span>
+        <input id="m-nome" required maxlength="60" placeholder="Ex.: Viagem, Notebook novo">
+      </label>
+      <label class="campo"><span>Quando eu tiver</span>
+        <input id="m-valor" inputmode="decimal" placeholder="R$ 0,00">
+      </label>
+      <div class="campo"><span>Eu posso comprar</span>
+        <p class="ajuda">Escolha itens da lista. Se deixar o valor vazio, ele vira a soma dos itens.</p>
+        <ul class="escolhas" id="m-itens"></ul>
+      </div>
+      <button type="button" class="link perigo" id="m-apagar" hidden>Apagar meta</button>
+    </form>
+  </dialog>
+
+  <div class="dica-instalar" id="dica-instalar" hidden>
+    <p>Para usar como app: toque em <strong>Compartilhar</strong> e depois em <strong>Adicionar à Tela de Início</strong>.</p>
+    <button type="button" id="fechar-dica" aria-label="Fechar">×</button>
+  </div>
+
+  <div class="aviso" id="aviso" role="status" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
